@@ -19,8 +19,8 @@ from constants import (
     SCREEN_WIDTH,
     YELLOW_COLOR,
 )
+from grad import grad_box_create
 
-# from grad import grad_box_create
 # importing the function that selects the squares from selector.py
 from selector import selector_func
 from sound import chirper, load_sound_effects
@@ -50,7 +50,6 @@ async def main():
     run = True
     while run:
         clock.tick(60)
-        # current_box_name = BOX_NAMES[selected_index]
 
         # Handle input events
         for event in pygame.event.get():
@@ -82,19 +81,16 @@ async def main():
         selected_box = Box.all_boxes[selected_index]
         selector_func(screen, selected_box.x, selected_box.y)
 
-        """
         grad_box_create(
             screen,
+            YELLOW_COLOR,
             GREEN_COLOR,
-            PURPLE_COLOR,
             False,
             True,
-            20,
-            boxes,
-            "green_box",
-            "purple_box",
+            19,
+            yellow_box,
+            green_box,
         )
-        """
         # Display debug information on screen
         debug_display_string = f"selected_box: {selected_box.name}"
         text_surface = debug_font.render(debug_display_string, True, (0, 200, 0))
