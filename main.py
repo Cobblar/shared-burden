@@ -2,19 +2,18 @@ import asyncio  # needed for Pygbag async
 
 import pygame
 
+from boxes import box_names, boxes
+
 # importing constant variables from constants.py
 from constants import (
     BG_COLOR,
     GREEN_COLOR,
-    NODE_SIZE,
-    NODE_SPACER,
-    ORANGE_COLOR,
-    OUTLINE_OFFSET,
+    # ORANGE_COLOR,
     PURPLE_COLOR,
-    RED_COLOR,
+    # RED_COLOR,
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
-    YELLOW_COLOR,
+    # YELLOW_COLOR,
 )
 from grad import grad_box_create
 
@@ -29,24 +28,14 @@ debug_font = pygame.font.Font(None, 30)
 sfx = load_sound_effects()
 
 # local arrays
-box_names = ["yellow_box", "green_box", "purple_box", "orange_box", "red_box"]
-box_colors = [YELLOW_COLOR, GREEN_COLOR, PURPLE_COLOR, ORANGE_COLOR, RED_COLOR]
 
 # local variables
-boxes = {}
-node_mod = 1
 selected_index = 0
 selected_box = 0
-test_box = pygame.Rect(10, 10, 300, 30)
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # this creates the Rects for the boxes and adds them all to the "boxes" dictionary.
-for name in box_names:
-    x = (NODE_SPACER * node_mod) + OUTLINE_OFFSET
-    y = SCREEN_HEIGHT / 2
-    boxes[name] = pygame.Rect(x, y, NODE_SIZE, NODE_SIZE)
-    node_mod += 1
 
 
 async def main():
@@ -77,11 +66,14 @@ async def main():
         screen.fill(BG_COLOR)
 
         # Draw all boxes
-        for name, color in zip(box_names, box_colors):
-            pygame.draw.rect(screen, color, boxes[name])
+        for name in box_names:
+            pygame.draw.rect(
+                screen,
+                boxes[name]["color"],  # pull color from dict
+                boxes[name]["rect"],  # pull rect from dict
+            )  # Draw selector on currently selected box
 
-        # Draw selector on currently selected box
-        selected_box = boxes[box_names[selected_index]]
+        selected_box = boxes[box_names[selected_index]]["rect"]
         selector_func(screen, selected_box.x, selected_box.y)
 
         grad_box_create(

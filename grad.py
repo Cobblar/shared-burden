@@ -58,6 +58,6 @@ def grad_box_create(
     box1,
     box2,
 ):
-    location = box_lib[box2].x - box_lib[box1].x
-    grad_rect = pygame.Rect(box_lib[box1].x, box_lib[box2].y, location, height)
+    location = box_lib[box2]["rect"].x - box_lib[box1]["rect"].x
+    grad_rect = pygame.Rect(box_lib[box1]["rect"].x, box_lib[box2]["rect"].y, location, height)
     fill_gradient(surface, color, gradient, grad_rect, vertical, forward)
