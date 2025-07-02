@@ -1,3 +1,5 @@
+import asyncio  # needed for Pygbag async
+
 import pygame
 
 # importing constant variables from constants.py
@@ -5,8 +7,6 @@ from constants import (
     BG_COLOR,
     GREEN_COLOR,
     NODE_SIZE,
-    # OUTLINE_WIDTH,
-    # OUTLINE_HEIGHT,
     NODE_SPACER,
     ORANGE_COLOR,
     OUTLINE_OFFSET,
@@ -16,12 +16,14 @@ from constants import (
     SCREEN_WIDTH,
     YELLOW_COLOR,
 )
+from grad import grad_box_create
 
 # importing the function that selects the squares from selector.py
 from selector import selector_func
 from sound import chirper, load_sound_effects
 
 # system stuff
+clock = pygame.time.Clock()
 pygame.init()
 debug_font = pygame.font.Font(None, 30)
 sfx = load_sound_effects()
@@ -35,66 +37,75 @@ boxes = {}
 node_mod = 1
 selected_index = 0
 selected_box = 0
-# current_box_name = box_names[selected_index]
+test_box = pygame.Rect(10, 10, 300, 30)
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-# this creates the Rects for the boxes and adds them all to the "boxes" dictionary. You can call properties of these
+# this creates the Rects for the boxes and adds them all to the "boxes" dictionary.
 for name in box_names:
     x = (NODE_SPACER * node_mod) + OUTLINE_OFFSET
     y = SCREEN_HEIGHT / 2
     boxes[name] = pygame.Rect(x, y, NODE_SIZE, NODE_SIZE)
     node_mod += 1
 
-run = True
-while run:
-    current_box_name = box_names[selected_index]
-    # input handler
-    # closes the game if the X is pressed
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            run = False
-        # cycles between nodes if tab is pressed
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_TAB:
-                selected_index = (selected_index + 1) % len(box_names)
-        # moves the selected box with the mouse wheel
-        if event.type == pygame.MOUSEWHEEL:
-            # scrolling up
-            if event.y > 0:
-                if selected_box.y > 100:
-                    selected_box.y -= 250
-                    chirper(selected_box.y, sfx, current_box_name)
-            # scrolling down
-            elif event.y < 0:
-                if selected_box.y < 1100:
-                    selected_box.y += 250
-                    chirper(selected_box.y, sfx, current_box_name)
 
-    # add bg color
-    screen.fill(BG_COLOR)
+async def main():
+    global selected_index, selected_box
+    run = True
+    while run:
+        clock.tick(60)
+        current_box_name = box_names[selected_index]
 
-    # outline
-    for name, color in zip(box_names, box_colors):
-        pygame.draw.rect(screen, color, boxes[name])
+        # Handle input events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_TAB:
+                    selected_index = (selected_index + 1) % len(box_names)
+            if event.type == pygame.MOUSEWHEEL:
+                if event.y > 0:
+                    if selected_box.y > 100:
+                        selected_box.y -= 250
+                        chirper(selected_box.y, sfx, current_box_name)
+                elif event.y < 0:
+                    if selected_box.y < 1100:
+                        selected_box.y += 250
+                        chirper(selected_box.y, sfx, current_box_name)
 
-    selected_box = boxes[box_names[selected_index]]
-    selector_func(screen, selected_box.x, selected_box.y)
+        # Fill the background
+        screen.fill(BG_COLOR)
 
-    """
-    # a string with the variables to display
-    debug_display_string = f"selected_box: {current_box_name}"
-    # render the string
-    text_surface = debug_font.render(
-        debug_display_string, True, (0, 200, 0)
-    )
-    # draw that text surface onto the main screen
-    screen.blit(
-        text_surface, (10, 10)
-    )
-    """
+        # Draw all boxes
+        for name, color in zip(box_names, box_colors):
+            pygame.draw.rect(screen, color, boxes[name])
 
-    # system stuff
-    pygame.display.flip()
+        # Draw selector on currently selected box
+        selected_box = boxes[box_names[selected_index]]
+        selector_func(screen, selected_box.x, selected_box.y)
 
-pygame.quit()
+        grad_box_create(
+            screen,
+            GREEN_COLOR,
+            PURPLE_COLOR,
+            False,
+            True,
+            20,
+            boxes,
+            "green_box",
+            "purple_box",
+        )
+        """
+        # Display debug information on screen
+        debug_display_string = f"selected_box: {boxes['green_box']}"
+        text_surface = debug_font.render(debug_display_string, True, (0, 200, 0))
+        screen.blit(text_surface, (10, 10))
+        """
+        pygame.display.flip()
+        await asyncio.sleep(0)
+
+    pygame.quit()
+    return
+
+
+asyncio.run(main())
