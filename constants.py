@@ -8,6 +8,10 @@ GREEN_COLOR = (163, 190, 140)
 PURPLE_COLOR = (180, 142, 173)
 ORANGE_COLOR = (208, 135, 122)
 YELLOW_COLOR = (235, 203, 139)
+# box colors array
+BOX_COLORS = [YELLOW_COLOR, GREEN_COLOR, PURPLE_COLOR, ORANGE_COLOR, RED_COLOR]
+# box names
+BOX_NAMES = ["yellow_box", "green_box", "purple_box", "orange_box", "red_box"]
 # node size
 NODE_SIZE = 20
 # outline placement
@@ -16,3 +20,4 @@ OUTLINE_HEIGHT = SCREEN_HEIGHT - 100
 # space between nodes
 NODE_SPACER = OUTLINE_WIDTH / 6
 OUTLINE_OFFSET = 58
+BOX_Y = SCREEN_HEIGHT / 2
