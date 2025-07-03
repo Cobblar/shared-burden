@@ -1,7 +1,7 @@
 import pygame
 
 from constants import CONTROL_SURFACE_HEIGHT
-from sound import chirper
+from sound import chirper, other_sounds
 
 
 def handle_input(event, display, selected_index, selected_box, sfx, Box, resolutions):
@@ -14,6 +14,10 @@ def handle_input(event, display, selected_index, selected_box, sfx, Box, resolut
     if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_TAB:
             selected_index = (selected_index + 1) % len(Box.all_boxes)
+            if selected_index == 0:
+                other_sounds(sfx, "restart_cycle")
+            else:
+                other_sounds(sfx, "cycle")
         elif event.key == pygame.K_1:
             display.switch_resolution(0)
         elif event.key == pygame.K_2:
@@ -30,5 +34,4 @@ def handle_input(event, display, selected_index, selected_box, sfx, Box, resolut
             if selected_box.y < 350:
                 selected_box.move_y((CONTROL_SURFACE_HEIGHT // 6))
                 chirper(selected_box.y, sfx, selected_box.name)
-
     return True, selected_index, selected_box
