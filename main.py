@@ -7,9 +7,10 @@ from classes import Box
 # importing constant variables from constants.py
 from constants import (
     BG_COLOR,
-    # BOX_NAMES,
-    BOX_Y,
-    # BOX_COLORS,
+    CONTROL_SURFACE_BG_COLOR,
+    CONTROL_SURFACE_HEIGHT,
+    CONTROL_SURFACE_WIDTH,
+    CONTROL_SURFACE_Y_HEIGHT,
     GREEN_COLOR,
     NODE_SIZE,
     ORANGE_COLOR,
@@ -19,30 +20,73 @@ from constants import (
     SCREEN_WIDTH,
     YELLOW_COLOR,
 )
-from grad import grad_box_create
+from controls import handle_input
 
+# Import the DisplayManager class from the other file
+from displaymanager import DisplayManager
+
+# from grad import grad_box_create
 # importing the function that selects the squares from selector.py
 from selector import selector_func
-from sound import chirper, load_sound_effects
+from sound import load_sound_effects
 
 # system stuff
 clock = pygame.time.Clock()
 pygame.init()
+aspect_ratio = SCREEN_WIDTH / SCREEN_HEIGHT
+
 debug_font = pygame.font.Font(None, 30)
 sfx = load_sound_effects()
-
 
 # local variables
 selected_index = 0
 selected_box = 0
 
-yellow_box = Box("yellow_box", YELLOW_COLOR, 266, BOX_Y, NODE_SIZE)
-green_box = Box("green_box", GREEN_COLOR, 533, BOX_Y, NODE_SIZE)
-orange_box = Box("orange_box", ORANGE_COLOR, 800, BOX_Y, NODE_SIZE)
-purple_box = Box("purple_box", PURPLE_COLOR, 1066, BOX_Y, NODE_SIZE)
-red_box = Box("red_box", RED_COLOR, 1332, BOX_Y, NODE_SIZE)
+yellow_box = Box(
+    "yellow_box",
+    YELLOW_COLOR,
+    ((CONTROL_SURFACE_WIDTH // 6) * 1),
+    CONTROL_SURFACE_HEIGHT / 2,
+    NODE_SIZE,
+)
+green_box = Box(
+    "green_box",
+    GREEN_COLOR,
+    ((CONTROL_SURFACE_WIDTH // 6) * 2),
+    CONTROL_SURFACE_HEIGHT / 2,
+    NODE_SIZE,
+)
+orange_box = Box(
+    "orange_box",
+    ORANGE_COLOR,
+    ((CONTROL_SURFACE_WIDTH // 6) * 3),
+    CONTROL_SURFACE_HEIGHT / 2,
+    NODE_SIZE,
+)
+purple_box = Box(
+    "purple_box",
+    PURPLE_COLOR,
+    ((CONTROL_SURFACE_WIDTH // 6) * 4),
+    CONTROL_SURFACE_HEIGHT / 2,
+    NODE_SIZE,
+)
+red_box = Box(
+    "red_box",
+    RED_COLOR,
+    ((CONTROL_SURFACE_WIDTH // 6) * 5),
+    CONTROL_SURFACE_HEIGHT / 2,
+    NODE_SIZE,
+)
 
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+# resolutions list and DisplayManager initialization
+resolutions = [(540, 720), (810, 1080), (1080, 1440)]
+display = DisplayManager(
+    resolutions, default_index=2, game_surface_size=(SCREEN_WIDTH, SCREEN_HEIGHT)
+)
+
+control_surface = pygame.Surface(
+    (CONTROL_SURFACE_WIDTH, CONTROL_SURFACE_HEIGHT), pygame.SRCALPHA
+)
 
 
 async def main():
@@ -51,38 +95,32 @@ async def main():
     while run:
         clock.tick(60)
 
-        # Handle input events
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_TAB:
-                    selected_index = (selected_index + 1) % len(Box.all_boxes)
-            if event.type == pygame.MOUSEWHEEL:
-                if event.y > 0:
-                    if selected_box.y > 100:
-                        selected_box.move_y(-250)
-                        chirper(selected_box.y, sfx, selected_box.name)
-                elif event.y < 0:
-                    if selected_box.y < 1100:
-                        selected_box.move_y(250)
-                        chirper(selected_box.y, sfx, selected_box.name)
+            run, selected_index, selected_box = handle_input(
+                event, display, selected_index, selected_box, sfx, Box, resolutions
+            )
+            if not run:
+                break
+
         # Fill the background
-        screen.fill(BG_COLOR)
+        game_surface = display.get_game_surface()
+        screen = display.get_screen()
+        game_surface.fill(BG_COLOR)
+        control_surface.fill(CONTROL_SURFACE_BG_COLOR)
 
         # Draw all boxes
         for box in Box.all_boxes:
             pygame.draw.rect(
-                screen,
+                control_surface,
                 box.color,
                 box.rect,
             )
 
         selected_box = Box.all_boxes[selected_index]
-        selector_func(screen, selected_box.x, selected_box.y)
-
+        selector_func(control_surface, selected_box.x, selected_box.y)
+        """
         grad_box_create(
-            screen,
+            control_surface,
             YELLOW_COLOR,
             GREEN_COLOR,
             False,
@@ -91,10 +129,17 @@ async def main():
             yellow_box,
             green_box,
         )
+        """
         # Display debug information on screen
         debug_display_string = f"selected_box: {selected_box.name}"
         text_surface = debug_font.render(debug_display_string, True, (0, 200, 0))
         screen.blit(text_surface, (10, 10))
+
+        # BLIT control_surface ONTO game_surface (not directly to screen)
+        game_surface.blit(control_surface, (0, CONTROL_SURFACE_Y_HEIGHT))
+
+        # Scale and blit the game surface to the screen
+        display.blit_scaled()
 
         pygame.display.flip()
         await asyncio.sleep(0)
