@@ -21,3 +21,7 @@ class Box:
     @classmethod
     def create_box(cls, name, color, x, y, size):
         return cls(name, color, x, y, size)
+
+    @classmethod
+    def clear_boxes(cls):
+        cls.all_boxes = []

@@ -1,0 +1,10 @@
+[tool.ruff]
+# Base settings for Ruff
+
+[tool.ruff.lint]
+# Select specific rules to enable or ignore
+# For example, to enable all Pyflakes and Isort rules:
+# select = ["F", "I"]
+
+# Prevent Ruff from offering fixes for unused imports (F401) and unused variables (F841)
+unfixable = ["F401", "F841"]
