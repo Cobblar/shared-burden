@@ -2,6 +2,8 @@ import asyncio  # needed for Pygbag async
 
 import pygame
 
+
+from crt_surface import crt
 from classes import Box
 
 # importing constant variables from constants.py
@@ -28,7 +30,7 @@ from displaymanager import DisplayManager
 # from grad import grad_box_create
 # importing the function that selects the squares from selector.py
 from selector import selector_func
-from sound import load_sound_effects
+from sound import load_sound_effects, other_sounds
 
 # system stuff
 clock = pygame.time.Clock()
@@ -94,20 +96,21 @@ async def main():
     run = True
     while run:
         clock.tick(60)
+        dt = clock.tick(60)
 
         for event in pygame.event.get():
             run, selected_index, selected_box = handle_input(
                 event, display, selected_index, selected_box, sfx, Box, resolutions
             )
-            if not run:
-                break
-
-        # Fill the background
+        # Assign the surface and the screen to local variables
+        # it's not required, but I guess it's best practice
         game_surface = display.get_game_surface()
         screen = display.get_screen()
+        # Fill the background
         game_surface.fill(BG_COLOR)
         control_surface.fill(CONTROL_SURFACE_BG_COLOR)
 
+        crt(game_surface, yellow_box, green_box, Box, dt)
         # Draw all boxes
         for box in Box.all_boxes:
             pygame.draw.rect(
@@ -118,18 +121,6 @@ async def main():
 
         selected_box = Box.all_boxes[selected_index]
         selector_func(control_surface, selected_box.x, selected_box.y)
-        """
-        grad_box_create(
-            control_surface,
-            YELLOW_COLOR,
-            GREEN_COLOR,
-            False,
-            True,
-            19,
-            yellow_box,
-            green_box,
-        )
-        """
         # Display debug information on screen
         debug_display_string = f"selected_box: {selected_box.name}"
         text_surface = debug_font.render(debug_display_string, True, (0, 200, 0))
@@ -137,7 +128,6 @@ async def main():
 
         # BLIT control_surface ONTO game_surface (not directly to screen)
         game_surface.blit(control_surface, (0, CONTROL_SURFACE_Y_HEIGHT))
-
         # Scale and blit the game surface to the screen
         display.blit_scaled()
 

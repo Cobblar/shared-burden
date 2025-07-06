@@ -40,6 +40,8 @@ def load_sound_effects():
         "cycle": pygame.mixer.Sound("sound/selectors/forward.wav"),
         "restart_cycle": pygame.mixer.Sound("sound/selectors/restart.wav"),
         "bump_edge": pygame.mixer.Sound("sound/bump_edge.wav"),
+        # crt sounds
+        "shield": pygame.mixer.Sound("sound/shield.wav"),
     }
     return sounds
 
@@ -83,3 +85,12 @@ def other_sounds(sfx_lib, sound_name):
     # Play the sound and update the time
     sfx_lib[sound_name].play()
     last_played_times[sound_name] = now
+
+
+played_sounds = {}
+
+
+def play_sound_once(name):
+    if not played_sounds.get(name, False):
+        other_sounds(load_sound_effects(), name)
+        played_sounds[name] = True

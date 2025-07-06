@@ -1,0 +1,53 @@
+import math
+
+
+class OrbitingObject:
+    """
+    A class to represent an object that orbits a central point.
+    It manages its own position and angle over time, and updates an internal pygame.Rect.
+    """
+
+    def __init__(
+        self, orbiting_image, central_pos, orbit_radius, orbit_speed, initial_angle=0.0
+    ):
+        """
+        Initializes an OrbitingObject.
+
+        Args:
+            orbiting_image (pygame.Surface): The image for this orbiting object.
+            central_pos (tuple): The (x, y) coordinates of the center point around which to orbit.
+            orbit_radius (int/float): The radius of the orbit.
+            orbit_speed (int/float): The speed of the orbit in degrees per frame.
+            initial_angle (float, optional): The starting angle in degrees. Defaults to 0.0.
+        """
+        self.orbiting_image = orbiting_image
+        self.central_pos = central_pos
+        self.orbit_radius = orbit_radius
+        self.orbit_speed = orbit_speed
+        self.current_angle = initial_angle  # This is the internal state that updates
+
+        # Initialize the Rect for the orbiting image.
+        # Its position will be updated by update_position().
+        # Start at central_pos for initial rect size
+        self.rect = self.orbiting_image.get_rect(center=self.central_pos)
+
+    def update_position(self):
+        """
+        Calculates the orbiting object's new position and updates its internal angle.
+        It directly modifies the 'self.rect' attribute. It does NOT draw the object.
+        """
+        # Convert the current angle from degrees to radians for trigonometric functions
+        angle_rad = math.radians(self.current_angle)
+
+        # Calculate the orbiting image's position using sine and cosine
+        # X-coordinate: central_x + radius * cos(angle)
+        # Y-coordinate: central_y + radius * sin(angle)
+        orbit_x = self.central_pos[0] + self.orbit_radius * math.cos(angle_rad)
+        orbit_y = self.central_pos[1] + self.orbit_radius * math.sin(angle_rad)
+
+        # Update the internal rect's center to the newly calculated position.
+        # This is the key change: the rect is modified in place.
+        self.rect.center = (int(orbit_x), int(orbit_y))
+
+        # Update the angle for the next frame.
+        self.current_angle = (self.current_angle + self.orbit_speed) % 360

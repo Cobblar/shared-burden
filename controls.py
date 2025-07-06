@@ -2,6 +2,7 @@ import pygame
 
 from constants import CONTROL_SURFACE_HEIGHT
 from sound import chirper, other_sounds
+from crt_surface import moon_orbiting_mars
 
 
 def handle_input(event, display, selected_index, selected_box, sfx, Box, resolutions):
@@ -29,9 +30,12 @@ def handle_input(event, display, selected_index, selected_box, sfx, Box, resolut
         if event.y > 0:
             if selected_box.y > 100:
                 selected_box.move_y(-(CONTROL_SURFACE_HEIGHT // 6))
+                selected_box.position += 1
                 chirper(selected_box.y, sfx, selected_box.name)
+
         elif event.y < 0:
             if selected_box.y < 350:
                 selected_box.move_y((CONTROL_SURFACE_HEIGHT // 6))
                 chirper(selected_box.y, sfx, selected_box.name)
+                selected_box.position -= 1
     return True, selected_index, selected_box

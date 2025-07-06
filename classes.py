@@ -8,6 +8,7 @@ class Box:
     def __init__(self, name, color, x, y, size):
         self.name = name
         self.color = color
+        self.position = 0
         self.x = x
         self.y = y
         self.size = size
