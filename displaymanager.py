@@ -29,10 +29,15 @@ class DisplayManager:
         return self.screen
 
     def blit_scaled(self):
-        scaled = pygame.transform.smoothscale(
-            self.game_surface, self.current_resolution
-        )
-        self.screen.blit(scaled, (0, 0))
+        if self.game_surface.get_size() == self.current_resolution:
+            # If same size, blit directly to the screen. Much faster.
+            self.screen.blit(self.game_surface, (0, 0))
+        else:
+            # If different sizes, then perform the slow scaling operation.
+            scaled = pygame.transform.smoothscale(
+                self.game_surface, self.current_resolution
+            )
+            self.screen.blit(scaled, (0, 0))
 
     def get_current_resolution(self):
         return self.current_resolution

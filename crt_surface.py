@@ -7,7 +7,7 @@ from constants import CRT_SURFACE_HEIGHT, CRT_SURFACE_WIDTH
 from images import mars_img, mars_half_x, mars_half_y, sun_img, moon_img
 from orbit import OrbitingObject  # <--- Import the OrbitingObject class
 
-crt_surface = pygame.Surface((CRT_SURFACE_WIDTH, CRT_SURFACE_HEIGHT), pygame.SRCALPHA)
+crt_surface = pygame.Surface((CRT_SURFACE_WIDTH, CRT_SURFACE_HEIGHT))
 
 # --- Instantiate the OrbitingObject for the sun at the module level ---
 moon_orbit_radius = 300
@@ -38,7 +38,10 @@ def play_shield(dt):  # call to play the shield. Contains sound and animation.
 
 
 def play_shield(
-    dt, green_box, _state={"prev_pos": None, "active": False, "last_trigger": -9999}
+    dt,
+    green_box,
+    sfx,
+    _state={"prev_pos": None, "active": False, "last_trigger": -9999},
 ):
     cooldown_ms = 10000  # 2 sec cooldown
     now = pygame.time.get_ticks()
@@ -50,7 +53,7 @@ def play_shield(
             shield_anim.reset()
             _state["active"] = True
             # <-- no .play_sound_once
-            other_sounds(load_sound_effects(), "shield")
+            other_sounds(sfx, "shield")
             _state["last_trigger"] = now
 
     _state["prev_pos"] = pos
@@ -65,7 +68,7 @@ def play_shield(
             _state["active"] = False
 
 
-def crt(surface, yellow_box, green_box, Box, dt):
+def crt(surface, yellow_box, green_box, Box, dt, sfx):
     # create background color
     crt_surface.fill((0, 0, 0))
     # draw mars onto the crt (central image)
@@ -79,7 +82,7 @@ def crt(surface, yellow_box, green_box, Box, dt):
     )
     moon_orbiting_mars.orbit_speed = yellow_box.position * 1.5
 
-    play_shield(dt, green_box)
+    play_shield(dt, green_box, sfx)
     # Call update_position to calculate the new location and update the internal angle.
     moon_orbiting_mars.update_position()
     # Now, explicitly blit the sun's image using the updated rect attribute.
