@@ -95,7 +95,6 @@ async def main():
     global selected_index, selected_box
     run = True
     while run:
-        clock.tick(60)
         dt = clock.tick(60)
 
         for event in pygame.event.get():
