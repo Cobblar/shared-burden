@@ -1,12 +1,13 @@
 import asyncio  # needed for Pygbag async
-
 import pygame
 
+pygame.init()
+display = pygame.display.set_mode((1080, 1440))
 
-from crt_surface import crt
-from classes import Box
 
-# importing constant variables from constants.py
+from sound import load_sound_effects
+from selector import selector_func
+from controls import handle_input
 from constants import (
     BG_COLOR,
     CONTROL_SURFACE_BG_COLOR,
@@ -22,16 +23,19 @@ from constants import (
     SCREEN_WIDTH,
     YELLOW_COLOR,
 )
-from controls import handle_input
+from classes import Box
+from crt_surface import crt
+
+
+
+
+# importing constant variables from constants.py
 
 
 # importing the function that selects the squares from selector.py
-from selector import selector_func
-from sound import load_sound_effects
 
 # system stuff
 clock = pygame.time.Clock()
-pygame.init()
 aspect_ratio = SCREEN_WIDTH / SCREEN_HEIGHT
 
 debug_font = pygame.font.Font(None, 30)
@@ -77,7 +81,6 @@ red_box = Box(
     NODE_SIZE,
 )
 
-display = pygame.display.set_mode((1080, 1440))
 control_surface = pygame.Surface(
     (CONTROL_SURFACE_WIDTH, CONTROL_SURFACE_HEIGHT), pygame.SRCALPHA
 )
@@ -87,7 +90,7 @@ async def main():
     global selected_index, selected_box
     run = True
     while run:
-        dt = clock.tick(30)
+        dt = clock.tick(60)
 
         for event in pygame.event.get():
             run, selected_index, selected_box = handle_input(

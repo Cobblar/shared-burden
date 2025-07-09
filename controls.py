@@ -23,7 +23,6 @@ def handle_input(event, display, selected_index, selected_box, sfx, Box):
                 selected_box.move_y(-(CONTROL_SURFACE_HEIGHT // 6))
                 selected_box.position += 1
                 chirper(selected_box.y, sfx, selected_box.name)
-
         elif event.y < 0:
             if selected_box.y < 350:
                 selected_box.move_y((CONTROL_SURFACE_HEIGHT // 6))
