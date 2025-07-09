@@ -8,7 +8,8 @@ asteroid_img = pygame.image.load("images/asteroid.png").convert_alpha()
 asteroid_hit_img = pygame.image.load("images/asteroid_hit.png").convert_alpha()
 terraformer_img = pygame.image.load("images/terraformer.png").convert_alpha()
 # sprite sheets
-shield_anim = pygame.image.load("images/animations/shield1big.png").convert_alpha()
+shield_anim = pygame.image.load("images/animations/shield1big2.png").convert_alpha()
+asteroid_poof_anim = pygame.image.load("images/animations/poof1.png").convert_alpha()
 
 
 def center_finder_height(image):
@@ -53,7 +54,9 @@ def mask_from_sheet(sheet, start, size, columns, rows=1):
 shield_anim_frames = strip_from_sheet(
     shield_anim, (0, 0), (480, 480), columns=5, rows=4
 )
-
+asteroid_poof_frames = strip_from_sheet(
+    asteroid_poof_anim, (0, 0), (64, 28), columns=9, rows=1
+)
 shield_anim_mask = mask_from_sheet(shield_anim, (0, 0), (480, 480), columns=5, rows=4)
 
 
@@ -72,7 +75,7 @@ class SpriteAnimation(pygame.sprite.Sprite):
         self.finished = False
         self.rect = self.frames[0].get_rect()
         self.pos = pos
-        self.rect.topleft = pos
+        self.rect.center = pos
         self.image = self.frames[self.current_index]
 
     def reset(self):
@@ -81,7 +84,7 @@ class SpriteAnimation(pygame.sprite.Sprite):
         self.finished = False
 
     def update(self, dt):
-        self.rect.topleft = self.pos
+        self.rect.center = self.pos
 
         if self.finished:
             return  # Do nothing if done
@@ -107,3 +110,6 @@ class SpriteAnimation(pygame.sprite.Sprite):
 
     def get_current_mask(self):
         return self.all_mask_frames[self.current_index]
+
+    def is_done(self):
+        return self.finished

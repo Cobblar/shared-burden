@@ -1,13 +1,11 @@
-import asyncio  # needed for Pygbag async
-import pygame
+import asyncio  # nopep8
+import pygame  # nopep8
 
-pygame.init()
-display = pygame.display.set_mode((1080, 1440))
+pygame.init()  # nopep8
+display = pygame.display.set_mode((1080, 1440))  # nopep8
 
-
-from sound import load_sound_effects
-from selector import selector_func
-from controls import handle_input
+from crt_surface import crt, crt_handle_event
+from classes import Box, Selector
 from constants import (
     BG_COLOR,
     CONTROL_SURFACE_BG_COLOR,
@@ -23,10 +21,8 @@ from constants import (
     SCREEN_WIDTH,
     YELLOW_COLOR,
 )
-from classes import Box
-from crt_surface import crt
-
-
+from controls import handle_input
+from sound import load_sound_effects
 
 
 # importing constant variables from constants.py
@@ -81,9 +77,12 @@ red_box = Box(
     NODE_SIZE,
 )
 
+
 control_surface = pygame.Surface(
     (CONTROL_SURFACE_WIDTH, CONTROL_SURFACE_HEIGHT), pygame.SRCALPHA
 )
+
+main_selector = Selector(8, control_surface)
 
 
 async def main():
@@ -93,6 +92,7 @@ async def main():
         dt = clock.tick(60)
 
         for event in pygame.event.get():
+            crt_handle_event(dt, event)
             run, selected_index, selected_box = handle_input(
                 event, display, selected_index, selected_box, sfx, Box
             )
@@ -113,7 +113,9 @@ async def main():
             )
 
         selected_box = Box.all_boxes[selected_index]
-        selector_func(control_surface, selected_box.x, selected_box.y)
+        main_selector.update(selected_box.x, selected_box.y)
+        # selector_func(control_surface, selected_box.x, selected_box.y)
+        green_box.update()
         # Display debug information on screen
         debug_display_string = f"selected_box: {selected_box.name}"
         text_surface = debug_font.render(debug_display_string, True, (0, 200, 0))
