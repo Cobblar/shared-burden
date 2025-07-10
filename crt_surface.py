@@ -15,7 +15,9 @@ from images import (
     # sun_img,
     moon_img,
     asteroid_img,
+    asteroid_gray_img,
     terraformer_img,
+    terraformer_death_img,
 )
 from orbit import OrbitingBehavior  # <--- Import the OrbitingObject class
 from classes import Planet, Asteroid, Terraformer, ShieldEffect
@@ -59,6 +61,7 @@ terraformer_orbiting_mars = OrbitingBehavior(
     tidal_lock_offset=270,
 )
 
+
 terraformer1 = Terraformer(
     terraformer_img, "terraformer1", 0, 0, orbiting_behavior=terraformer_orbiting_mars
 )
@@ -72,7 +75,7 @@ sfx = load_sound_effects()
 SPAWN_ASTEROID = pygame.USEREVENT + 1
 
 # timers
-pygame.time.set_timer(SPAWN_ASTEROID, 2000)
+pygame.time.set_timer(SPAWN_ASTEROID, 2500)
 
 ast_rand_spawn_x = 0
 ast_rand_spawn_y = 0
@@ -91,11 +94,13 @@ astroid_poof_anim = SpriteAnimation(
 # groups
 mars_group = pygame.sprite.Group()
 asteroid_group = pygame.sprite.Group()
+impacted_asteroid_group = pygame.sprite.Group()
 shield_group = pygame.sprite.Group()
+terraformer_group = pygame.sprite.Group()
 # add to the groups
 mars_group.add(mars)
 shield_group.add(shield_anim)
-
+terraformer_group.add(terraformer1)
 
 """
 --------------FUNCTIONS-------------
@@ -113,7 +118,6 @@ def crt(surface, yellow_box, green_box, Box, dt, sfx):
     crt_surface.blit(moon.image, moon.rect)
     terraformer1.update()
     crt_surface.blit(terraformer1.image, terraformer1.rect)
-    shield.update_and_draw(dt, crt_surface, green_box, mars)
     # bases moon orbiting speed on position of yellow box
     # moon_orbiting_mars.orbit_speed = yellow_box.position * 2.5
 
@@ -130,12 +134,44 @@ def crt(surface, yellow_box, green_box, Box, dt, sfx):
                 asteroid, mars_group, False, pygame.sprite.collide_mask
             ):
                 mars.damage()
-                asteroid.impact()
+                if not asteroid.remaining:
+                    asteroid.impact_remain(
+                        asteroid_gray_img,
+                        asteroid_group,
+                        impacted_asteroid_group,
+                        push_distance=0.22,
+                        push_target=mars.vector,
+                    )  # asteroid.impact()
+                    # asteroid.impact()
         if pygame.sprite.spritecollide(asteroid, shield_group, False):
             if pygame.sprite.spritecollide(
                 asteroid, shield_group, False, pygame.sprite.collide_mask
             ):
                 asteroid.impact()
+        if not asteroid.remaining:
+            if pygame.sprite.spritecollide(asteroid, impacted_asteroid_group, False):
+                if pygame.sprite.spritecollide(
+                    asteroid, impacted_asteroid_group, False, pygame.sprite.collide_mask
+                ):
+                    asteroid.impact()
+        if pygame.sprite.spritecollide(asteroid, terraformer_group, False):
+            if pygame.sprite.spritecollide(
+                asteroid, terraformer_group, False, pygame.sprite.collide_mask
+            ):
+                terraformer1.death(terraformer_death_img)
+                asteroid.impact()
+
+    for asteroid in list(impacted_asteroid_group):
+        asteroid.update(dt)
+
+        if pygame.sprite.spritecollide(terraformer1, impacted_asteroid_group, False):
+            if pygame.sprite.spritecollide(
+                terraformer1, impacted_asteroid_group, False, pygame.sprite.collide_mask
+            ):
+                terraformer1.death(terraformer_death_img)
+
+    # this is down here so everything draws under the shield
+    shield.update_and_draw(dt, crt_surface, green_box, mars)
     # draw the crt onto the main game surface
     surface.blit(crt_surface, (0, 0))
 
@@ -166,55 +202,3 @@ def crt_handle_event(dt, event):
             y = random.randint(0, CRT_SURFACE_HEIGHT)
 
         create_asteroid(x, y)
-
-
-"""
-def play_shield(dt, green_box, sfx, shield_anim_playing=False):
-    pos = green_box.position
-
-    if pos == 1 and not shield_anim_playing:
-        shield_anim.reset()
-        other_sounds(sfx, "shield")
-        shield_anim_playing = True
-
-    if shield_anim_playing:
-        shield_anim.update(dt)
-        crt_surface.blit(
-            shield_anim.get_current_frame(),
-            shield_anim.pos,
-        )
-
-        if shield_anim.is_done():  # You need this method!
-            shield_anim_playing = False
-
-
-def play_shield(
-    dt,
-    green_box,
-    sfx,
-    _state={"prev_pos": None, "active": False, "last_trigger": -9999},
-):
-    cooldown_ms = 10000  # 2 sec cooldown
-    now = pygame.time.get_ticks()
-
-    pos = green_box.position
-
-    if pos == 1 and _state["prev_pos"] != 1:
-        if now - _state["last_trigger"] >= cooldown_ms:
-            shield_anim.reset()
-            _state["active"] = True
-
-            other_sounds(sfx, "shield")
-            _state["last_trigger"] = now
-
-    _state["prev_pos"] = pos
-
-    if _state["active"]:
-        shield_anim.update(dt)
-        crt_surface.blit(
-            shield_anim.get_current_frame(),
-            shield_anim.pos,
-        )
-        if shield_anim.finished:
-            _state["active"] = False
-"""

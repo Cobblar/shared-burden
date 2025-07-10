@@ -1,6 +1,5 @@
 import pygame
 from pygame.math import Vector2
-from images import asteroid_hit_img
 
 
 class Box:
@@ -74,7 +73,15 @@ class Terraformer(pygame.sprite.Sprite):
         self.rect.center = (x, y)
         self.mask = pygame.mask.from_surface(self.image)
         self.orbit = orbiting_behavior
+        self.current_angle = 0
         # self.mask = pygame.mask.from_surface(self.image)
+
+    def death(self, death_image):
+        rotated = pygame.transform.rotate(death_image, self.current_angle)
+        self.image = rotated
+        self.rect = self.image.get_rect(center=self.rect.center)
+        self.mask = pygame.mask.from_surface(self.image)
+        self.orbit = False
 
     def update(self):
         if self.orbit:
@@ -85,8 +92,10 @@ class Terraformer(pygame.sprite.Sprite):
 
             if self.orbit.tidal_lock:
                 facing_angle = self.orbit.get_tidal_lock_angle()
+                self.current_angle = facing_angle
                 self.image = pygame.transform.rotate(self.original_image, facing_angle)
                 self.rect = self.image.get_rect(center=self.rect.center)
+                self.mask = pygame.mask.from_surface(self.image)
         else:
             # If no orbit, update self.vector some other way
             self.rect.center = self.vector
@@ -145,30 +154,88 @@ class Asteroid(pygame.sprite.Sprite):
         self.keep_moving = 1
         self.death_anim = death_anim
         self.playing_death_anim = False
+        self.remaining = False
         self.surface = surface
+        self.last_move_direction = Vector2(1, 0)
+        self.impact_angle = 0
+        self.push_velocity = Vector2(0, 0)
+        self.impact_remain_sprite = None
+        self.impacted_group = None
+        self.asteroid_group = None
+
         Asteroid.all_asteroids.append(self)
 
     def move(self, speed, target):
         if self.keep_moving:
             movement = target - self.pos
             if movement.length() > 0:
-                self.pos += movement.normalize() * speed
+                self.last_move_direction = movement.normalize()
+                self.pos += self.last_move_direction * speed
             self.rect.center = self.pos
+
+    def impact_remain(
+        self,
+        impact_remain_sprite,
+        asteroids_group,
+        impacted_group,
+        push_distance=10,
+        push_target=None,
+    ):
+        self.impact_remain_sprite = impact_remain_sprite
+        self.impacted_group = impacted_group
+        self.asteroid_group = asteroids_group
+        self.asteroid_group.remove(self)
+        self.impacted_group.add(self)
+        self.remaining = True
+        self.keep_moving = 0
+        self.mask = pygame.mask.from_surface(impact_remain_sprite)
+
+        if push_target is not None:
+            direction = push_target - self.pos
+            if direction.length() != 0:
+                self.push_velocity = direction.normalize() * push_distance
+                self.last_move_direction = self.push_velocity.normalize()
 
     def impact(self):
         self.keep_moving = 0
         if not self.playing_death_anim:
+            direction = Vector2(self.last_move_direction)
+            if direction.length() == 0 and self.push_velocity.length() > 0:
+                direction = self.push_velocity.normalize()
+            if direction.length() != 0:
+                # Rotate so the bottom of the animation faces the movement direction
+                self.impact_angle = -direction.angle_to(Vector2(0, -1))
+            else:
+                self.impact_angle = 0
+
             self.death_anim.reset()
             self.death_anim.pos = self.pos
             self.playing_death_anim = True
 
     def update(self, dt):
+        # Apply push movement with friction
+        if self.push_velocity.length() > 0.1:
+            self.pos += self.push_velocity
+            self.rect.center = self.pos
+            self.push_velocity *= 0.99
+            if self.push_velocity.length() > 0:
+                self.last_move_direction = self.push_velocity.normalize()
+        else:
+            self.push_velocity = Vector2(0, 0)
+
+        # Play death animation with correct rotation
         if self.playing_death_anim:
             self.death_anim.update(dt)
-            self.surface.blit(self.death_anim.get_current_frame(), self.death_anim.pos)
+            frame = self.death_anim.get_current_frame()
+            rotated_frame = pygame.transform.rotate(frame, self.impact_angle)
+            rect = rotated_frame.get_rect(center=self.death_anim.pos)
+            self.surface.blit(rotated_frame, rect)
             if self.death_anim.finished:
                 self.playing_death_anim = False
                 self.kill()
+        elif self.remaining:
+            remain_rect = self.impact_remain_sprite.get_rect(center=self.pos)
+            self.surface.blit(self.impact_remain_sprite, remain_rect)
         else:
             self.surface.blit(self.image, self.rect)
 
