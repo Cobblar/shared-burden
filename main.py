@@ -1,5 +1,6 @@
 import asyncio  # nopep8
 import pygame  # nopep8
+import score  # nopep8
 
 pygame.init()  # nopep8
 display = pygame.display.set_mode((1080, 1440))  # nopep8
@@ -34,6 +35,9 @@ from sound import load_sound_effects
 clock = pygame.time.Clock()
 aspect_ratio = SCREEN_WIDTH / SCREEN_HEIGHT
 
+
+bigfont = pygame.font.Font(None, 80)
+smallfont = pygame.font.Font(None, 45)
 debug_font = pygame.font.Font(None, 30)
 sfx = load_sound_effects()
 
@@ -85,8 +89,48 @@ control_surface = pygame.Surface(
 main_selector = Selector(8, control_surface)
 
 
+def pause():
+    text = bigfont.render("Click Me to Resume", 13, (0, 0, 0))
+    textx = SCREEN_WIDTH / 2 - text.get_width() / 2
+    texty = SCREEN_HEIGHT / 2 - text.get_height() / 2
+    textx_size = text.get_width()
+    texty_size = text.get_height()
+    pygame.draw.rect(
+        display,
+        (255, 255, 255),
+        ((textx - 5, texty - 5), (textx_size + 10, texty_size + 10)),
+    )
+
+    display.blit(
+        text,
+        (
+            SCREEN_WIDTH / 2 - text.get_width() / 2,
+            SCREEN_HEIGHT / 2 - text.get_height() / 2,
+        ),
+    )
+
+    clock = pygame.time.Clock()
+    pygame.display.flip()
+    in_main_menu = True
+    while in_main_menu:
+        clock.tick(60)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                in_main_menu = False
+                pygame.display.quit()
+                pygame.quit()
+                quit()
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                x, y = event.pos
+                if x >= textx - 5 and x <= textx + textx_size + 5:
+                    if y >= texty - 5 and y <= texty + texty_size + 5:
+                        in_main_menu = False
+                        break
+
+
 async def main():
     global selected_index, selected_box
+    current_score = 0
     run = True
     while run:
         dt = clock.tick(60)
@@ -96,6 +140,9 @@ async def main():
             run, selected_index, selected_box = handle_input(
                 event, display, selected_index, selected_box, sfx, Box
             )
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pause()
         # Assign the surface and the screen to local variables
         # it's not required, but I guess it's best practice
         game_surface = display
@@ -116,8 +163,10 @@ async def main():
         main_selector.update(selected_box.x, selected_box.y)
         # selector_func(control_surface, selected_box.x, selected_box.y)
         green_box.update()
+        if score.score_tracker:
+            current_score += 0.016
         # Display debug information on screen
-        debug_display_string = f"selected_box: {selected_box.name}"
+        debug_display_string = f"Score: {'%.2f' % (current_score)}"
         text_surface = debug_font.render(debug_display_string, True, (0, 200, 0))
         display.blit(text_surface, (10, 10))
 

@@ -1,6 +1,6 @@
 import pygame
 import random
-
+import score
 
 from sound import load_sound_effects, other_sounds, play_sound_once
 from images import (
@@ -102,6 +102,8 @@ mars_group.add(mars)
 shield_group.add(shield_anim)
 terraformer_group.add(terraformer1)
 
+score_tracker = True
+
 """
 --------------FUNCTIONS-------------
 """
@@ -160,6 +162,7 @@ def crt(surface, yellow_box, green_box, Box, dt, sfx):
             ):
                 terraformer1.death(terraformer_death_img)
                 asteroid.impact()
+                score.score_tracker = False
 
     for asteroid in list(impacted_asteroid_group):
         asteroid.update(dt)
@@ -169,6 +172,7 @@ def crt(surface, yellow_box, green_box, Box, dt, sfx):
                 terraformer1, impacted_asteroid_group, False, pygame.sprite.collide_mask
             ):
                 terraformer1.death(terraformer_death_img)
+                score_tracker = False
 
     # this is down here so everything draws under the shield
     shield.update_and_draw(dt, crt_surface, green_box, mars)
