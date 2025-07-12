@@ -8,6 +8,8 @@ from images import (
     shield_anim_mask,
     SpriteAnimation,
     asteroid_poof_frames,
+    laser_anim_frames,
+    laser_anim_mask,
 )
 from constants import CRT_SURFACE_HEIGHT, CRT_SURFACE_WIDTH
 from images import (
@@ -19,8 +21,8 @@ from images import (
     terraformer_img,
     terraformer_death_img,
 )
-from orbit import OrbitingBehavior  # <--- Import the OrbitingObject class
-from classes import Planet, Asteroid, Terraformer, ShieldEffect
+from orbit import OrbitingBehavior
+from classes import Planet, Asteroid, Terraformer, ShieldEffect, Moon, LaserEffect
 
 # create the surface
 crt_surface = pygame.Surface((CRT_SURFACE_WIDTH, CRT_SURFACE_HEIGHT), pygame.SRCALPHA)
@@ -38,17 +40,17 @@ mars = Planet(
 
 
 moon_orbit_radius = 300
-moon_orbit_speed = 1
+moon_orbit_speed = 0
 moon_orbiting_mars = OrbitingBehavior(
     central_pos=mars.rect.center,
     orbit_radius=moon_orbit_radius,
     orbit_speed=moon_orbit_speed,
     initial_angle=0.0,
-    tidal_lock=False,
+    tidal_lock=True,
     tidal_lock_offset=0,
 )
 
-moon = Planet(moon_img, "moon", 0, 0, orbiting_behavior=moon_orbiting_mars)
+moon = Moon(moon_img, "moon", 0, 0, orbiting_behavior=moon_orbiting_mars)
 
 terraformer_orbit_radius = 130
 terraformer_orbit_speed = 0.1
@@ -87,6 +89,12 @@ shield_anim = SpriteAnimation(
 )
 shield = ShieldEffect(shield_anim, sfx)
 
+laser_pos = mars.rect.center
+laser_anim = SpriteAnimation(
+    laser_pos, laser_anim_frames, fps=15, masks=laser_anim_mask, loop=False
+)
+laser = LaserEffect(laser_anim, sfx)
+
 asteroid_poof_pos = (0, 0)
 astroid_poof_anim = SpriteAnimation(
     asteroid_poof_pos, asteroid_poof_frames, fps=15, masks=shield_anim_mask, loop=False
@@ -97,11 +105,12 @@ asteroid_group = pygame.sprite.Group()
 impacted_asteroid_group = pygame.sprite.Group()
 shield_group = pygame.sprite.Group()
 terraformer_group = pygame.sprite.Group()
+laser_group = pygame.sprite.Group()
 # add to the groups
 mars_group.add(mars)
 shield_group.add(shield_anim)
 terraformer_group.add(terraformer1)
-
+laser_group.add(laser_anim)
 score_tracker = True
 
 """
@@ -116,7 +125,7 @@ def crt(surface, yellow_box, green_box, Box, dt, sfx):
     # draw stuff onto the crt (central image)
     mars.update()
     crt_surface.blit(mars.image, mars.rect)
-    moon.update()
+    moon.update(yellow_box)
     crt_surface.blit(moon.image, moon.rect)
     terraformer1.update()
     crt_surface.blit(terraformer1.image, terraformer1.rect)
@@ -135,7 +144,7 @@ def crt(surface, yellow_box, green_box, Box, dt, sfx):
             if pygame.sprite.spritecollide(
                 asteroid, mars_group, False, pygame.sprite.collide_mask
             ):
-                mars.damage()
+                # mars.damage()
                 if not asteroid.remaining:
                     asteroid.impact_remain(
                         asteroid_gray_img,
@@ -156,26 +165,39 @@ def crt(surface, yellow_box, green_box, Box, dt, sfx):
                     asteroid, impacted_asteroid_group, False, pygame.sprite.collide_mask
                 ):
                     asteroid.impact()
+                    sfx["asteroid_impact"].play()
         if pygame.sprite.spritecollide(asteroid, terraformer_group, False):
             if pygame.sprite.spritecollide(
                 asteroid, terraformer_group, False, pygame.sprite.collide_mask
             ):
                 terraformer1.death(terraformer_death_img)
+                sfx["terraformer_death"].play()
                 asteroid.impact()
                 score.score_tracker = False
 
-    for asteroid in list(impacted_asteroid_group):
+    for asteroid in impacted_asteroid_group:
         asteroid.update(dt)
 
         if pygame.sprite.spritecollide(terraformer1, impacted_asteroid_group, False):
             if pygame.sprite.spritecollide(
                 terraformer1, impacted_asteroid_group, False, pygame.sprite.collide_mask
             ):
+                score.score_tracker = False
+                sfx["terraformer_death"].play()
                 terraformer1.death(terraformer_death_img)
-                score_tracker = False
+
+        if pygame.sprite.spritecollide(laser, impacted_asteroid_group, False):
+            # Get the list of colliding impacted asteroids for the mask check
+            colliding_asteroids = pygame.sprite.spritecollide(
+                laser, impacted_asteroid_group, False, pygame.sprite.collide_mask
+            )
+            if colliding_asteroids:
+                # Only impact the first colliding asteroid (like normal asteroid behavior)
+                colliding_asteroids[0].impact()
 
     # this is down here so everything draws under the shield
     shield.update_and_draw(dt, crt_surface, green_box, mars)
+    laser.update_and_draw(dt, crt_surface, yellow_box, moon, mars)
     # draw the crt onto the main game surface
     surface.blit(crt_surface, (0, 0))
 
@@ -184,7 +206,7 @@ def create_asteroid(x, y):
     asteroid_poof_anim = SpriteAnimation(
         (x, y), asteroid_poof_frames, fps=15, masks=shield_anim_mask, loop=False
     )
-    asteroid = Asteroid(x, y, asteroid_img, 1, asteroid_poof_anim, crt_surface)
+    asteroid = Asteroid(x, y, asteroid_img, 1, asteroid_poof_anim, crt_surface, sfx)
     asteroid_group.add(asteroid)
 
 

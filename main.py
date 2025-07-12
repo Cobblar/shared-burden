@@ -48,17 +48,18 @@ selected_box = 0
 yellow_box = Box(
     "yellow_box",
     YELLOW_COLOR,
-    ((CONTROL_SURFACE_WIDTH // 6) * 1),
+    ((CONTROL_SURFACE_WIDTH // 3) * 1),
     CONTROL_SURFACE_HEIGHT / 2,
     NODE_SIZE,
 )
 green_box = Box(
     "green_box",
     GREEN_COLOR,
-    ((CONTROL_SURFACE_WIDTH // 6) * 2),
+    ((CONTROL_SURFACE_WIDTH // 3) * 2),
     CONTROL_SURFACE_HEIGHT / 2,
     NODE_SIZE,
 )
+"""
 orange_box = Box(
     "orange_box",
     ORANGE_COLOR,
@@ -80,13 +81,17 @@ red_box = Box(
     CONTROL_SURFACE_HEIGHT / 2,
     NODE_SIZE,
 )
-
+"""
 
 control_surface = pygame.Surface(
     (CONTROL_SURFACE_WIDTH, CONTROL_SURFACE_HEIGHT), pygame.SRCALPHA
 )
 
 main_selector = Selector(8, control_surface)
+
+pygame.mixer.init()
+pygame.mixer.music.load("sound/bgm.mp3")
+pygame.mixer.music.play(-1, 0.0)
 
 
 def pause():

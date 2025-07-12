@@ -42,6 +42,9 @@ def load_sound_effects():
         "bump_edge": pygame.mixer.Sound("sound/bump_edge.wav"),
         # crt sounds
         "shield": pygame.mixer.Sound("sound/shield.wav"),
+        "laser": pygame.mixer.Sound("sound/laser.wav"),
+        "asteroid_impact": pygame.mixer.Sound("sound/asteroid_impact.wav"),
+        "terraformer_death": pygame.mixer.Sound("sound/terraformer_death.wav"),
     }
     return sounds
 

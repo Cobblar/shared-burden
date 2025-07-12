@@ -3,7 +3,7 @@ import pygame
 # single images
 mars_img = pygame.image.load("images/mars.png").convert_alpha()
 sun_img = pygame.image.load("images/sun.png").convert_alpha()
-moon_img = pygame.image.load("images/moon.png").convert_alpha()
+moon_img = pygame.image.load("images/newmoon.png").convert_alpha()
 asteroid_img = pygame.image.load("images/asteroid.png").convert_alpha()
 asteroid_gray_img = pygame.image.load("images/asteroidgray.png").convert_alpha()
 terraformer_img = pygame.image.load("images/terraformer.png").convert_alpha()
@@ -11,6 +11,7 @@ terraformer_death_img = pygame.image.load("images/terraformer_dead.png").convert
 # sprite sheets
 shield_anim = pygame.image.load("images/animations/shield1big2.png").convert_alpha()
 asteroid_poof_anim = pygame.image.load("images/animations/poof1.png").convert_alpha()
+laser_anim = pygame.image.load("images/animations/laser.png").convert_alpha()
 
 
 def center_finder_height(image):
@@ -58,10 +59,15 @@ shield_anim_frames = strip_from_sheet(
 asteroid_poof_frames = strip_from_sheet(
     asteroid_poof_anim, (0, 0), (64, 28), columns=9, rows=1
 )
+
+laser_anim_frames = strip_from_sheet(laser_anim, (0, 0), (9, 120), columns=5, rows=1)
+
 shield_anim_mask = mask_from_sheet(shield_anim, (0, 0), (480, 480), columns=5, rows=4)
 
-
+laser_anim_mask = mask_from_sheet(laser_anim, (0, 0), (9, 120), columns=5, rows=1)
 # animator
+
+
 class SpriteAnimation(pygame.sprite.Sprite):
     def __init__(self, pos, frames, fps, masks=None, loop=True):
         pygame.sprite.Sprite.__init__(self)

@@ -20,7 +20,7 @@ BOX_COLORS = [YELLOW_COLOR, GREEN_COLOR, PURPLE_COLOR, ORANGE_COLOR, RED_COLOR]
 # box names
 BOX_NAMES = ["yellow_box", "green_box", "purple_box", "orange_box", "red_box"]
 # node size
-NODE_SIZE = 20
+NODE_SIZE = 50
 # outline placement
 OUTLINE_WIDTH = SCREEN_WIDTH - 100
 OUTLINE_HEIGHT = SCREEN_HEIGHT - 100

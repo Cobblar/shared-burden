@@ -17,6 +17,26 @@ def handle_input(event, display, selected_index, selected_box, sfx, Box):
                 other_sounds(sfx, "restart_cycle")
             else:
                 other_sounds(sfx, "cycle")
+        if event.key == pygame.K_SPACE:
+            if selected_box.name == "yellow_box":
+                if selected_box.position == 1:
+                    selected_box.position = 0
+                    selected_box.move_y(+(CONTROL_SURFACE_HEIGHT // 6))
+                elif selected_box.position == 2:
+                    selected_box.position = 0
+                    selected_box.move_y(+(CONTROL_SURFACE_HEIGHT // 6))
+                    selected_box.move_y(+(CONTROL_SURFACE_HEIGHT // 6))
+                elif selected_box.position == -1:
+                    selected_box.position = 0
+                    selected_box.move_y(-(CONTROL_SURFACE_HEIGHT // 6))
+                elif selected_box.position == -2:
+                    selected_box.position = 0
+                    selected_box.move_y(-(CONTROL_SURFACE_HEIGHT // 6))
+                    selected_box.move_y(-(CONTROL_SURFACE_HEIGHT // 6))
+                elif selected_box.position == 0:
+                    selected_box.activate = True
+                    print("test1")
+
     if event.type == pygame.MOUSEWHEEL:
         if event.y > 0:
             if selected_box.y > 100:

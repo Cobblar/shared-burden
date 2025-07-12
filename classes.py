@@ -1,4 +1,5 @@
 import pygame
+import math
 from pygame.math import Vector2
 
 
@@ -16,11 +17,11 @@ class Box:
         self.size = size
         self.rect = pygame.Rect(x, y, size, size)
         self.one_notch_cd = False
+        self.activate = False
         Box.all_boxes.append(self)  # adds each box to all_boxes
 
     def update(self):
         if self.one_notch_cd:
-            print("test2")
             print(self.y)
             if self.y >= self.original_y:
                 self.one_notch_cd = False
@@ -36,7 +37,6 @@ class Box:
     def one_notch_cd_method(self):
         self.original_y = self.y
         self.one_notch_cd = True
-        print("test1")
 
     @classmethod
     def create_box(cls, name, color, x, y, size):
@@ -48,8 +48,8 @@ class Selector:
         self.border = border
         self.surface = surface
         self.color = (216, 222, 233)
-        self.width = 36
-        self.height = 36
+        self.width = 66
+        self.height = 66
 
     def update(self, x, y):
         self.x = x
@@ -141,10 +141,25 @@ class Planet(pygame.sprite.Sprite):
             self.damage_level = 0
 
 
+class Moon(Planet):
+    def update(self, yellow_box):
+        super().update()
+        if yellow_box.position == 1:
+            self.orbit.orbit_speed = 0.5
+        elif yellow_box.position == 2:
+            self.orbit.orbit_speed = 2
+        elif yellow_box.position == 0:
+            self.orbit.orbit_speed = 0
+        elif yellow_box.position == -1:
+            self.orbit.orbit_speed = -0.5
+        elif yellow_box.position == -2:
+            self.orbit.orbit_speed = -2
+
+
 class Asteroid(pygame.sprite.Sprite):
     all_asteroids = []
 
-    def __init__(self, x, y, image, scale, death_anim, surface):
+    def __init__(self, x, y, image, scale, death_anim, surface, sfx):
         pygame.sprite.Sprite.__init__(self)
         self.pos = Vector2(x, y)
         self.image = pygame.transform.scale_by(image, scale)
@@ -162,6 +177,7 @@ class Asteroid(pygame.sprite.Sprite):
         self.impact_remain_sprite = None
         self.impacted_group = None
         self.asteroid_group = None
+        self.sfx_library = sfx
 
         Asteroid.all_asteroids.append(self)
 
@@ -198,6 +214,7 @@ class Asteroid(pygame.sprite.Sprite):
 
     def impact(self):
         self.keep_moving = 0
+        # self.sfx_library["asteroid_impact"].play()
         if not self.playing_death_anim:
             direction = Vector2(self.last_move_direction)
             if direction.length() == 0 and self.push_velocity.length() > 0:
@@ -285,3 +302,88 @@ class ShieldEffect:
 
             if self.anim.is_done():
                 self.playing = False
+
+
+class LaserEffect:
+    def __init__(self, anim, sfx_library):
+        self.anim = anim
+        self.sfx_library = sfx_library
+        self.playing = False
+        self.rect = pygame.Rect(0, 0, 0, 0)  # Initialize self.rect
+        self.mask = None  # Initialize self.mask
+
+    def trigger(self):
+        if not self.playing:
+            self.anim.reset()
+            self.sfx_library["laser"].play()
+            self.playing = True
+
+    def update_and_draw(self, dt, surface, yellow_box, moon, mars):
+        if yellow_box.activate:
+            self.trigger()
+            yellow_box.activate = False
+
+        if self.playing:
+            moon_center = Vector2(moon.rect.center)
+            mars_center = Vector2(mars.rect.center)
+
+            direction_vector = mars_center - moon_center
+
+            moon_radius = moon.rect.width / 2
+            mars_radius = mars.rect.width / 2
+
+            laser_start_pos = moon_center + direction_vector.normalize() * moon_radius
+            laser_end_pos = mars_center - direction_vector.normalize() * mars_radius
+
+            visible_laser_vector = laser_end_pos - laser_start_pos
+            actual_laser_length = visible_laser_vector.length()
+
+            if actual_laser_length == 0:
+                self.rect = pygame.Rect(0, 0, 0, 0)
+                self.mask = None  # Clear mask if laser isn't drawn
+                return
+
+            angle = visible_laser_vector.angle_to(Vector2(0, -1))
+
+            self.anim.update(dt)
+            original_frame = self.anim.get_current_frame()
+
+            scale_factor_h = actual_laser_length / original_frame.get_height()
+
+            scaled_frame = pygame.transform.scale(
+                original_frame,
+                (
+                    original_frame.get_width(),
+                    int(original_frame.get_height() * scale_factor_h),
+                ),
+            )
+
+            rotated_frame = pygame.transform.rotate(scaled_frame, angle)
+
+            base_offset_from_scaled_center = Vector2(0, scaled_frame.get_height() / 2)
+            rotated_base_offset = base_offset_from_scaled_center.rotate(-angle)
+
+            target_rotated_center = laser_start_pos - rotated_base_offset
+
+            # --- CRITICAL ADDITIONS FOR MASK COLLISION ---
+            self.rect = rotated_frame.get_rect(center=target_rotated_center)
+            self.mask = pygame.mask.from_surface(
+                rotated_frame
+            )  # Create mask from the current rotated frame
+            # --- END CRITICAL ADDITIONS ---
+
+            surface.blit(rotated_frame, self.rect)
+
+            # Debug: Draw red circle at laser start (on moon's surface)
+            pygame.draw.circle(
+                surface,
+                (255, 0, 0),
+                (int(laser_start_pos.x), int(laser_start_pos.y)),
+                5,
+            )
+
+            if self.anim.is_done():
+                self.playing = False
+                # Clear the rect when not playing
+                self.rect = pygame.Rect(0, 0, 0, 0)
+                self.mask = None  # Clear mask when not playing
