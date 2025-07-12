@@ -24,6 +24,7 @@ from constants import (
 )
 from controls import handle_input
 from sound import load_sound_effects
+from images import instructions_img, logo_img
 
 
 # importing constant variables from constants.py
@@ -95,7 +96,7 @@ pygame.mixer.music.play(-1, 0.0)
 
 
 def pause():
-    text = bigfont.render("Click Me to Resume", 13, (0, 0, 0))
+    text = bigfont.render("Click Me to Continue", 13, (0, 0, 0))
     textx = SCREEN_WIDTH / 2 - text.get_width() / 2
     texty = SCREEN_HEIGHT / 2 - text.get_height() / 2
     textx_size = text.get_width()
@@ -113,7 +114,8 @@ def pause():
             SCREEN_HEIGHT / 2 - text.get_height() / 2,
         ),
     )
-
+    display.blit(logo_img, (0, -16))
+    display.blit(instructions_img, (0, 880))
     clock = pygame.time.Clock()
     pygame.display.flip()
     in_main_menu = True
@@ -125,18 +127,17 @@ def pause():
                 pygame.display.quit()
                 pygame.quit()
                 quit()
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                x, y = event.pos
-                if x >= textx - 5 and x <= textx + textx_size + 5:
-                    if y >= texty - 5 and y <= texty + texty_size + 5:
-                        in_main_menu = False
-                        break
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    in_main_menu = False
+                break
 
 
 async def main():
     global selected_index, selected_box
     current_score = 0
     run = True
+    pause()
     while run:
         dt = clock.tick(60)
 

@@ -8,6 +8,8 @@ asteroid_img = pygame.image.load("images/asteroid.png").convert_alpha()
 asteroid_gray_img = pygame.image.load("images/asteroidgray.png").convert_alpha()
 terraformer_img = pygame.image.load("images/terraformer.png").convert_alpha()
 terraformer_death_img = pygame.image.load("images/terraformer_dead.png").convert_alpha()
+instructions_img = pygame.image.load("images/instructions.png").convert_alpha()
+logo_img = pygame.image.load("images/logo.png").convert_alpha()
 # sprite sheets
 shield_anim = pygame.image.load("images/animations/shield1big2.png").convert_alpha()
 asteroid_poof_anim = pygame.image.load("images/animations/poof1.png").convert_alpha()
