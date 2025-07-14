@@ -77,7 +77,7 @@ sfx = load_sound_effects()
 SPAWN_ASTEROID = pygame.USEREVENT + 1
 
 # timers
-pygame.time.set_timer(SPAWN_ASTEROID, 2500)
+pygame.time.set_timer(SPAWN_ASTEROID, 2000)
 
 ast_rand_spawn_x = 0
 ast_rand_spawn_y = 0
@@ -180,7 +180,7 @@ def crt(surface, yellow_box, green_box, Box, dt, sfx):
 
         if pygame.sprite.spritecollide(terraformer1, impacted_asteroid_group, False):
             if pygame.sprite.spritecollide(
-                terraformer1, impacted_asteroid_group, False, pygame.sprite.collide_mask
+                asteroid, terraformer_group, True, pygame.sprite.collide_mask
             ):
                 score.score_tracker = False
                 sfx["terraformer_death"].play()

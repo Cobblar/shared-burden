@@ -1,5 +1,7 @@
 import pygame
 
+from constants import CONTROL_SURFACE_HEIGHT
+
 
 def load_sound_effects():
     """Loads all sound effects and returns them in a dictionary."""
@@ -34,68 +36,64 @@ def load_sound_effects():
         "whistle_3": pygame.mixer.Sound("sound/whistle/3.ogg"),
         "whistle_4": pygame.mixer.Sound("sound/whistle/4.ogg"),
         "whistle_5": pygame.mixer.Sound("sound/whistle/5.ogg"),
+        # misc control surface sounds
+        "cycle": pygame.mixer.Sound("sound/selectors/forward.ogg"),
+        "restart_cycle": pygame.mixer.Sound("sound/selectors/restart.ogg"),
+        "bump_edge": pygame.mixer.Sound("sound/bump_edge.ogg"),
+        # crt sounds
+        "shield": pygame.mixer.Sound("sound/shield.ogg"),
+        "laser": pygame.mixer.Sound("sound/laser.ogg"),
+        "asteroid_impact": pygame.mixer.Sound("sound/asteroid_impact.ogg"),
+        "terraformer_death": pygame.mixer.Sound("sound/terraformer_death.ogg"),
     }
     return sounds
 
 
-def chirper(objx, sfx_lib, selected_box):
-    if objx == 100:
-        # position 1 highest note
-        if selected_box == "green_box":
-            sfx_lib["saw_5"].play()
-        elif selected_box == "yellow_box":
-            sfx_lib["voice_5"].play()
-        elif selected_box == "red_box":
-            sfx_lib["bitnoise_5"].play()
-        elif selected_box == "orange_box":
-            sfx_lib["rasp_5"].play()
-        elif selected_box == "purple_box":
-            sfx_lib["whistle_5"].play()
-    elif objx == 350:
-        # position 2
-        if selected_box == "green_box":
-            sfx_lib["saw_4"].play()
-        elif selected_box == "yellow_box":
-            sfx_lib["voice_4"].play()
-        elif selected_box == "red_box":
-            sfx_lib["bitnoise_4"].play()
-        elif selected_box == "orange_box":
-            sfx_lib["rasp_4"].play()
-        elif selected_box == "purple_box":
-            sfx_lib["whistle_4"].play()
-    elif objx == 600:
-        # position 3
-        if selected_box == "green_box":
-            sfx_lib["saw_3"].play()
-        elif selected_box == "yellow_box":
-            sfx_lib["voice_3"].play()
-        elif selected_box == "red_box":
-            sfx_lib["bitnoise_3"].play()
-        elif selected_box == "orange_box":
-            sfx_lib["rasp_3"].play()
-        elif selected_box == "purple_box":
-            sfx_lib["whistle_3"].play()
-    elif objx == 850:
-        # position 4
-        if selected_box == "green_box":
-            sfx_lib["saw_2"].play()
-        elif selected_box == "yellow_box":
-            sfx_lib["voice_2"].play()
-        elif selected_box == "red_box":
-            sfx_lib["bitnoise_2"].play()
-        elif selected_box == "orange_box":
-            sfx_lib["rasp_2"].play()
-        elif selected_box == "purple_box":
-            sfx_lib["whistle_2"].play()
-    elif objx == 1100:
-        # position 5 and lowest note
-        if selected_box == "green_box":
-            sfx_lib["saw_1"].play()
-        elif selected_box == "yellow_box":
-            sfx_lib["voice_1"].play()
-        elif selected_box == "red_box":
-            sfx_lib["bitnoise_1"].play()
-        elif selected_box == "orange_box":
-            sfx_lib["rasp_1"].play()
-        elif selected_box == "purple_box":
-            sfx_lib["whistle_1"].play()
+def chirper(objy, sfx_lib, selected_box):
+    positions = [
+        (1, "5"),  # highest note
+        (2, "4"),
+        (3, "3"),
+        (4, "2"),
+        (5, "1"),  # lowest note
+    ]
+
+    box_sounds = {
+        "green_box": "saw_",
+        "yellow_box": "voice_",
+        "red_box": "bitnoise_",
+        "orange_box": "rasp_",
+        "purple_box": "whistle_",
+    }
+
+    for pos, note in positions:
+        if objy == (CONTROL_SURFACE_HEIGHT // 6) * pos:
+            prefix = box_sounds.get(selected_box)
+            key = f"{prefix}{note}"
+            sfx_lib[key].play()
+
+
+last_played_times = {}
+
+
+def other_sounds(sfx_lib, sound_name):
+    now = pygame.time.get_ticks()  # Milliseconds since pygame.init()
+
+    # If we've played it before, check time since last play
+    if sound_name in last_played_times:
+        last_time = last_played_times[sound_name]
+        if now - last_time < 50:
+            return  # Too soon, skip playing
+
+    # Play the sound and update the time
+    sfx_lib[sound_name].play()
+    last_played_times[sound_name] = now
+
+
+played_sounds = {}
+
+
+def play_sound_once(name):
+    if not played_sounds.get(name, False):
+        other_sounds(load_sound_effects(), name)
+        played_sounds[name] = True
